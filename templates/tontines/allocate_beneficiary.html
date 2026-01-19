@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Allouer la tontine - {{ tontine.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5>💰 Allouer la tontine - {{ tontine.name }}</h5>
+            </div>
+            <div class="card-body">
+                <!-- Résumé du cycle -->
+                <div class="alert alert-info">
+                    <strong>Cycle #{{ stats.current_cycle }}</strong>
+                    <br />
+                    Total de la tontine: <strong>{{ tontine.total_pot }} FCFA</strong>
+                    <br />
+                    Membres actifs: <strong>{{ stats.total_members }}</strong>
+                    <br />
+                    Ayant reçu: <strong>{{ stats.total_members|add:"-"|add:stats.can_receive|length }}</strong>
+                    <br />
+                    Pouvant encore recevoir: <strong>{{ stats.can_receive|length }}</strong>
+                </div>
+
+                {% if stats.all_received %}
+                    <div class="alert alert-warning">
+                        ⚠️ Tous les membres ont reçu la tontine ce cycle. Le cycle suivant va commencer.
+                    </div>
+                {% endif %}
+
+                <!-- Membres ayant déjà reçu -->
+                {% if stats.already_received %}
+                    <div class="mb-4">
+                        <h6>✅ Ayant déjà reçu (Cycle #{{ stats.current_cycle }}):</h6>
+                        <div class="list-group">
+                            {% for member in stats.already_received %}
+                                <div class="list-group-item list-group-item-success">
+                                    {{ member.user.get_full_name }} ({{ member.user.email }})
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Formulaire de sélection du bénéficiaire -->
+                {% if stats.can_receive %}
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Sélectionner le bénéficiaire:</label>
+                            <select name="member_id" class="form-select" required>
+                                <option value="">-- Choisir un membre --</option>
+                                {% for member in stats.can_receive %}
+                                    <option value="{{ member.id }}">
+                                        {{ member.user.get_full_name }} - Total contribué: {{ member.total_contributed }} FCFA
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">✓ Allouer la tontine</button>
+                        <a href="{% url 'tontine_manage' tontine.id %}" class="btn btn-secondary">Retour</a>
+                    </form>
+                {% else %}
+                    <div class="alert alert-success">
+                        ✅ Tous les membres ont reçu la tontine ce cycle !
+                        <br />
+                        <small>Le prochain cycle sera disponible pour une nouvelle distribution.</small>
+                    </div>
+                    <a href="{% url 'tontine_manage' tontine.id %}" class="btn btn-secondary">Retour</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

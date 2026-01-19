@@ -1,0 +1,329 @@
+{% extends 'base.html' %}
+
+{% block title %}Mon porte-monnaie{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<style>
+    .wallet-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px 20px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+    }
+    .wallet-balance {
+        font-size: 48px;
+        font-weight: bold;
+        margin: 20px 0;
+    }
+    .wallet-label {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+    .action-btn-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 15px;
+        margin-top: 25px;
+    }
+    .action-btn {
+        background: white;
+        color: #667eea;
+        padding: 15px 20px;
+        border-radius: 12px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+        font-size: 14px;
+    }
+    .action-btn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        color: #764ba2;
+    }
+    .transaction-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        border-left: 4px solid #667eea;
+        transition: all 0.3s ease;
+    }
+    .transaction-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
+    }
+    .transaction-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .transaction-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: white;
+    }
+    .transaction-deposit {
+        background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+        color: #2c3e50;
+    }
+    .transaction-withdraw {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    }
+    .transaction-payment {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        color: #2c3e50;
+    }
+    .transaction-title {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 5px;
+    }
+    .transaction-date {
+        font-size: 12px;
+        color: #999;
+    }
+    .transaction-amount {
+        font-weight: bold;
+        font-size: 16px;
+    }
+    .amount-deposit {
+        color: #27ae60;
+    }
+    .amount-withdraw {
+        color: #e74c3c;
+    }
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 30px 0 20px;
+        font-size: 20px;
+        font-weight: bold;
+        color: #333;
+    }
+    .section-header i {
+        color: #667eea;
+        font-size: 24px;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+    }
+    .empty-state i {
+        font-size: 64px;
+        color: #ddd;
+        margin-bottom: 20px;
+    }
+    .info-box {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(200, 200, 200, 0.2);
+    }
+    .info-box-title {
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .info-box-content {
+        color: #666;
+        font-size: 14px;
+    }
+    @media (max-width: 768px) {
+        .wallet-hero {
+            padding: 30px 15px;
+        }
+        .wallet-balance {
+            font-size: 36px;
+        }
+        .action-btn-group {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+
+<div class="container-fluid mt-4 mb-5 px-md-4">
+    <!-- En-tête du porte-monnaie -->
+    <div class="wallet-hero">
+        <div class="wallet-label">
+            <i class="bi bi-wallet2"></i> Solde de votre porte-monnaie
+        </div>
+        <div class="wallet-balance">
+            {{ wallet.balance|default:0 }} <span style="font-size: 24px;">FCFA</span>
+        </div>
+        <div class="wallet-label" style="margin-top: 10px;">
+            Mis à jour: {{ wallet.updated_at|default:"maintenant"|date:"d/m/Y H:i" }}
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="action-btn-group">
+            <a href="{% url 'wallet_topup' %}" class="action-btn" style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); color: #2c3e50;">
+                <i class="bi bi-plus-circle"></i> Recharger
+            </a>
+            <a href="{% url 'tontine_list' %}" class="action-btn" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: #2c3e50;">
+                <i class="bi bi-person-plus"></i> Tontines
+            </a>
+            <a href="{% url 'vaults_overview' %}" class="action-btn" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                <i class="bi bi-safe2"></i> Coffres
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Historique des transactions -->
+        <div class="col-lg-8">
+            <div class="section-header">
+                <i class="bi bi-clock-history"></i>
+                Historique des transactions
+            </div>
+
+            {% if transactions %}
+                {% for t in transactions %}
+                <div class="transaction-card">
+                    <div class="transaction-header">
+                        <div style="display: flex; gap: 15px; align-items: center; flex: 1;">
+                            {% if t.type == 'deposit' %}
+                                <div class="transaction-icon transaction-deposit">
+                                    <i class="bi bi-arrow-down-circle"></i>
+                                </div>
+                            {% elif t.type == 'withdraw' %}
+                                <div class="transaction-icon transaction-withdraw">
+                                    <i class="bi bi-arrow-up-circle"></i>
+                                </div>
+                            {% elif t.type == 'payment' %}
+                                <div class="transaction-icon transaction-payment">
+                                    <i class="bi bi-credit-card"></i>
+                                </div>
+                            {% else %}
+                                <div class="transaction-icon" style="background: #95a5a6;">
+                                    <i class="bi bi-exchange"></i>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <div class="transaction-title">
+                                    {% if t.type == 'deposit' %}
+                                        Dépôt
+                                    {% elif t.type == 'withdraw' %}
+                                        Retrait
+                                    {% elif t.type == 'payment' %}
+                                        Paiement
+                                    {% else %}
+                                        Transfert
+                                    {% endif %}
+                                    — {{ t.note|truncatewords:5 }}
+                                </div>
+                                <div class="transaction-date">{{ t.created_at|date:"d/m/Y à H:i" }}</div>
+                            </div>
+                        </div>
+                        <div class="transaction-amount {% if t.type == 'deposit' %}amount-deposit{% else %}amount-withdraw{% endif %}">
+                            {% if t.type == 'deposit' %}
+                                +{{ t.amount }}
+                            {% else %}
+                                -{{ t.amount }}
+                            {% endif %}
+                            FCFA
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <div><i class="bi bi-inbox"></i></div>
+                    <p>Aucune transaction enregistrée.</p>
+                    <a href="{% url 'wallet_topup' %}" class="btn btn-primary mt-3">
+                        <i class="bi bi-plus"></i> Effectuer un dépôt
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Informations complémentaires -->
+        <div class="col-lg-4">
+            <!-- Coffres-forts -->
+            <div class="section-header">
+                <i class="bi bi-safe2"></i>
+                Coffres-forts
+            </div>
+            
+            {% if vaults %}
+                {% for v in vaults %}
+                <div class="info-box">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <div class="info-box-title">
+                                <i class="bi bi-safe"></i> {{ v.name }}
+                            </div>
+                            <div class="info-box-content">
+                                {% if v.is_locked %}
+                                    <span class="badge bg-danger mb-2">
+                                        <i class="bi bi-lock"></i> Verrouillé
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-success mb-2">
+                                        <i class="bi bi-unlock"></i> Actif
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 20px; font-weight: bold; color: #667eea;">
+                                {{ v.balance }} FCFA
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                <a href="{% url 'vaults_overview' %}" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-arrow-right"></i> Voir tous les coffres
+                </a>
+            {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-safe"></i>
+                    <p>Aucun coffre créé</p>
+                    <a href="{% url 'vault_create' %}" class="btn btn-sm btn-primary mt-2">
+                        <i class="bi bi-plus"></i> Créer un coffre
+                    </a>
+                </div>
+            {% endif %}
+
+            <!-- Information utile -->
+            <div style="margin-top: 30px;">
+                <div class="info-box">
+                    <div class="info-box-title">
+                        <i class="bi bi-info-circle"></i> Conseils
+                    </div>
+                    <div class="info-box-content">
+                        <ul style="margin: 0; padding-left: 20px; font-size: 13px;">
+                            <li>Gardez votre porte-monnaie chargé</li>
+                            <li>Utilisez les coffres pour épargner</li>
+                            <li>Consultez l'historique régulièrement</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

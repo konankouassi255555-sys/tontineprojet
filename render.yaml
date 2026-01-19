@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: tontinepro
+    env: python
+    plan: free
+    
+    # Build command - migrations et collectstatic
+    buildCommand: >
+      pip install -r requirements.txt &&
+      python manage.py migrate &&
+      python manage.py collectstatic --noinput
+    
+    # Start command - Gunicorn
+    startCommand: "gunicorn config.wsgi:application"
+    
+    # Port
+    port: 8000
+    
+    # Environment variables
+    envVars:
+      - key: DEBUG
+        value: false
+      - key: PYTHON_VERSION
+        value: 3.13.1
+
+# Database PostgreSQL
+databases:
+  - name: tontinepro_db
+    databaseName: tontinepro_db
+    user: tontinepro_user
+    plan: free

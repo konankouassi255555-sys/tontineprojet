@@ -1,0 +1,383 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ tontine.name }} - Détails{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <!-- En-tête de la tontine -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="mb-1">{{ tontine.name }}</h1>
+                <p class="text-muted mb-0">
+                    Code: <span class="badge bg-secondary">{{ tontine.code }}</span>
+                    {% if is_manager %}
+                        <span class="badge bg-warning ms-2">Vous êtes le gestionnaire</span>
+                    {% endif %}
+                </p>
+            </div>
+            <div>
+                <a href="{% url 'tontine_list' %}" class="btn btn-outline-secondary">
+                    ← Retour aux tontines
+                </a>
+                {% if is_manager %}
+                    <a href="{% url 'tontine_manage' tontine.id %}" class="btn btn-primary ms-2">
+                        <i class="bi bi-gear"></i> Gérer
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Statistiques -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <h6 class="card-title">Statut</h6>
+                        <p class="card-text">
+                            {% if tontine.status == 'active' %}
+                                <span class="badge bg-success">Active</span>
+                            {% elif tontine.status == 'draft' %}
+                                <span class="badge bg-warning">Brouillon</span>
+                            {% elif tontine.status == 'paused' %}
+                                <span class="badge bg-danger">En pause</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ tontine.get_status_display }}</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <h6 class="card-title">Cagnotte totale</h6>
+                        <p class="card-text display-6">{{ tontine.total_pot }} FCFA</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card text-white bg-info">
+                    <div class="card-body">
+                        <h6 class="card-title">Membres</h6>
+                        <p class="card-text display-6">{{ stats.total_members }}</p>
+                        <small>Actifs: {{ stats.active_members }}</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card text-white bg-secondary">
+                    <div class="card-body">
+                        <h6 class="card-title">Contribution</h6>
+                        <p class="card-text display-6">{{ tontine.contribution_amount }} FCFA</p>
+                        <small>Tous les {{ tontine.cycle_duration }} jours</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <!-- Informations de la tontine -->
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Informations de la tontine</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th style="width: 30%">Description:</th>
+                                <td>{{ tontine.description|linebreaks }}</td>
+                            </tr>
+                            <tr>
+                                <th>Gestionnaire:</th>
+                                <td>{{ tontine.manager.get_full_name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Date de début:</th>
+                                <td>{{ tontine.start_date|date:"d/m/Y" }}</td>
+                            </tr>
+                            {% if tontine.end_date %}
+                            <tr>
+                                <th>Date de fin:</th>
+                                <td>{{ tontine.end_date|date:"d/m/Y" }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <th>Calendrier des réunions:</th>
+                                <td>
+                                    {% if tontine.meeting_schedule %}
+                                        {{ tontine.meeting_schedule }}
+                                    {% else %}
+                                        <span class="text-muted">Non défini</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Lieu des réunions:</th>
+                                <td>
+                                    {% if tontine.meeting_location %}
+                                        {{ tontine.meeting_location }}
+                                    {% else %}
+                                        <span class="text-muted">Non défini</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Créée le:</th>
+                                <td>{{ tontine.created_at|date:"d/m/Y à H:i" }}</td>
+                            </tr>
+                        </table>
+                        
+                        {% if is_manager and tontine.status == 'draft' %}
+                        <a href="{% url 'tontine_activate' tontine.id %}" class="btn btn-success">
+                            <i class="bi bi-play-circle"></i> Activer la tontine
+                        </a>
+                        <a href="{% url 'tontine_edit' tontine.id %}" class="btn btn-outline-warning">
+                             <i class="bi bi-pencil"></i> Modifier
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Dernières contributions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Dernières contributions</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_contributions and recent_contributions|length > 0 %}
+                        <div class="list-group">
+                            {% for contrib in recent_contributions %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ contrib.member.user.get_full_name }}</strong>
+                                    <div class="small text-muted">{{ contrib.member.role }} • {{ contrib.created_at|date:"d/m/Y H:i" }}</div>
+                                </div>
+                                <div class="text-end">
+                                    <strong>{{ contrib.amount }} FCFA</strong>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-cash-stack display-1 text-muted"></i>
+                            <h5 class="mt-3">Aucune contribution récente</h5>
+                            <p class="text-muted">Les contributions apparaîtront ici</p>
+                        </div>
+                        {% endif %}
+
+                        {% if not is_manager %}
+                        <div class="mt-3">
+                            {% if user_wallet and user_wallet.balance >= tontine.contribution_amount %}
+                            <form method="post" action="{% url 'tontine_pay_wallet' tontine.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-wallet2"></i> Payer depuis porte-monnaie
+                                </button>
+                            </form>
+                            {% else %}
+                            <a href="{% url 'wallet_topup' %}" class="btn btn-outline-primary">Recharger le porte-monnaie</a>
+                            <small class="d-block mt-2 text-muted">Solde insuffisant pour payer la contribution.</small>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Liste des membres -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Membres ({{ members.count }})</h5>
+                            {% if is_manager %}
+                            <a href="{% url 'tontine_manage' tontine.id %}#membres" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-plus"></i> Inviter
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if members %}
+                        <div class="list-group list-group-flush">
+                            {% for member in members %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ member.user.get_full_name }}</strong>
+                                    <div class="small text-muted">
+                                        {% if member.role != 'member' %}
+                                            <span class="badge bg-info">{{ member.get_role_display }}</span>
+                                        {% endif %}
+                                        <span class="badge bg-{% if member.status == 'active' %}success{% else %}warning{% endif %}">
+                                            {{ member.get_status_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted d-block">
+                                        Contribué: {{ member.total_contributed }} FCFA
+                                    </small>
+                                    <small class="text-muted">
+                                        Depuis {{ member.joined_date|date:"d/m/Y" }}
+                                    </small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-3">
+                            <i class="bi bi-people display-1 text-muted"></i>
+                            <p class="mt-2">Aucun membre pour le moment</p>
+                            {% if is_manager %}
+                            <button class="btn btn-sm btn-primary">
+                                <i class="bi bi-person-plus"></i> Inviter des membres
+                            </button>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Actions rapides pour les membres -->
+                    {% if not is_manager %}
+                    <div class="card-footer">
+                        <div class="d-grid gap-2">
+                            {% if user_wallet and user_wallet.balance >= tontine.contribution_amount %}
+                            <form method="post" action="{% url 'tontine_pay_wallet' tontine.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-cash"></i> Payer depuis porte-monnaie
+                                </button>
+                            </form>
+                            {% else %}
+                            <a href="{% url 'wallet_topup' %}" class="btn btn-outline-primary">Recharger le porte-monnaie</a>
+                            {% endif %}
+
+                            <form method="post" action="#">
+                                {% csrf_token %}
+                                <button class="btn btn-outline-danger">
+                                    <i class="bi bi-door-open"></i> Quitter la tontine
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Informations de contribution -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">Prochaine contribution</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center">
+                            <div class="display-6 text-primary">{{ tontine.contribution_amount }} FCFA</div>
+                            <p class="mb-1">À verser tous les {{ tontine.cycle_duration }} jours</p>
+                            <small class="text-muted">Prochaine échéance: <span id="next-due-label">bientôt</span></small>
+                            <div id="next-due" data-start-date="{{ tontine.start_date|date:"Y-m-d" }}" data-cycle-days="{{ tontine.cycle_duration }}" style="display:none"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Porte-monnaie / Coffre -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">Porte-monnaie</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if user_wallet %}
+                        <p><strong>Solde:</strong> {{ user_wallet.balance }} FCFA</p>
+                        {% else %}
+                        <p class="text-muted">Vous n'avez pas encore de porte-monnaie.</p>
+                        {% endif %}
+
+                        <form method="post" action="{% url 'wallet_deposit' %}" class="row g-2">
+                            {% csrf_token %}
+                            <div class="col-7">
+                                <input name="amount" type="number" step="0.01" min="0" class="form-control" placeholder="Montant à déposer">
+                            </div>
+                            <div class="col-5">
+                                <button class="btn btn-outline-primary w-100">Ajouter des fonds</button>
+                            </div>
+                        </form>
+
+                        <hr>
+                        <p class="text-muted">Gérez vos coffres depuis la page Porte-monnaie.</p>
+                        <a href="{% url 'vaults_overview' %}" class="btn btn-outline-secondary w-100 mt-2">Voir mes coffres</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Ajouter des fonctionnalités interactives
+    const activateBtn = document.querySelector('.btn-success');
+    if (activateBtn && activateBtn.textContent.includes('Activer')) {
+        activateBtn.addEventListener('click', function() {
+            if (confirm('Êtes-vous sûr de vouloir activer cette tontine ?\n\nUne fois activée, les membres pourront commencer à contribuer.')) {
+                // Ici, vous pourrez ajouter la logique d'activation
+                alert('Fonctionnalité d\'activation à implémenter');
+            }
+        });
+    }
+});
+</script>
+<script>
+// Calculer et mettre à jour la prochaine échéance en temps réel
+function computeNextDueLabel() {
+    const el = document.getElementById('next-due');
+    const label = document.getElementById('next-due-label');
+    if (!el || !label) return;
+
+    const startDateStr = el.dataset.startDate; // YYYY-MM-DD
+    const cycleDays = parseInt(el.dataset.cycleDays, 10) || 30;
+    const start = new Date(startDateStr + 'T00:00:00');
+    const now = new Date();
+
+    if (isNaN(start.getTime())) {
+        label.textContent = 'bientôt';
+        return;
+    }
+
+    // Si la date de début est dans le futur
+    if (now < start) {
+        const diffMs = start - now;
+        const diffDays = Math.ceil(diffMs / (1000*60*60*24));
+        label.textContent = diffDays <= 1 ? 'bientôt' : `dans ${diffDays} jours`;
+        return;
+    }
+
+    // Nombre de jours depuis le début
+    const msPerDay = 1000*60*60*24;
+    const daysSince = Math.floor((now - start) / msPerDay);
+    const cyclesPassed = Math.floor(daysSince / cycleDays);
+    const nextCycleStart = new Date(start.getTime() + (cyclesPassed + 1) * cycleDays * msPerDay);
+
+    const diffMs = nextCycleStart - now;
+    const diffDays = Math.ceil(diffMs / msPerDay);
+
+    if (diffDays <= 1) {
+        label.textContent = 'bientôt';
+    } else if (diffDays <= 30) {
+        label.textContent = `dans ${diffDays} jours`;
+    } else {
+        // afficher date complète si loin
+        label.textContent = nextCycleStart.toLocaleDateString();
+    }
+}
+
+// Mettre à jour immédiatement puis toutes les 60 secondes
+computeNextDueLabel();
+setInterval(computeNextDueLabel, 60*1000);
+</script>
+{% endblock %}

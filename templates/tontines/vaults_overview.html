@@ -1,0 +1,400 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes coffres{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<style>
+    .vaults-hero {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 40px 20px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 40px rgba(79, 172, 254, 0.3);
+    }
+    .vaults-title {
+        font-size: 32px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    .vaults-subtitle {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+    .create-vault-form {
+        background: rgba(255, 255, 255, 1);
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+        margin-bottom: 30px;
+    }
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        align-items: flex-end;
+    }
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+    .form-group label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+        font-size: 14px;
+    }
+    .form-group input {
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.3s ease;
+    }
+    .form-group input:focus {
+        outline: none;
+        border-color: #4facfe;
+    }
+    .btn-create-vault {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    .btn-create-vault:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+    }
+    .vaults-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    .vault-card {
+        background: rgba(255, 255, 255, 1);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        border-top: 4px solid #4facfe;
+    }
+    .vault-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 45px rgba(0, 0, 0, 0.25);
+    }
+    .vault-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 20px;
+    }
+    .vault-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+    }
+    .vault-status {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .vault-status.active {
+        background: #d4edda;
+        color: #155724;
+    }
+    .vault-status.locked {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    .vault-name {
+        font-size: 20px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 15px;
+    }
+    .vault-balance {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+    }
+    .vault-balance-label {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 5px;
+    }
+    .vault-balance-value {
+        font-size: 28px;
+        font-weight: bold;
+        color: #4facfe;
+    }
+    .vault-info {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 15px;
+        padding: 15px;
+        background: #f9f9f9;
+        border-radius: 8px;
+    }
+    .vault-info-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+    .vault-info-row i {
+        color: #4facfe;
+        width: 16px;
+    }
+    .vault-actions {
+        display: flex;
+        gap: 10px;
+    }
+    .vault-btn {
+        flex: 1;
+        padding: 10px;
+        border: 2px solid #e0e0e0;
+        background: white;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 13px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+    .vault-btn:hover {
+        background: #f0f0f0;
+        border-color: #4facfe;
+        color: #4facfe;
+    }
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 30px 0 20px;
+        font-size: 22px;
+        font-weight: bold;
+        color: #333;
+    }
+    .section-header i {
+        color: #4facfe;
+        font-size: 28px;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+    .empty-state i {
+        font-size: 80px;
+        color: #ddd;
+        margin-bottom: 20px;
+    }
+    .empty-state p {
+        color: #999;
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+    .stats-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+    .stat-box {
+        background: rgba(255, 255, 255, 1);
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    .stat-value {
+        font-size: 28px;
+        font-weight: bold;
+        color: #4facfe;
+        margin-bottom: 5px;
+    }
+    .stat-label {
+        font-size: 13px;
+        color: #666;
+    }
+    @media (max-width: 768px) {
+        .vaults-hero {
+            padding: 30px 15px;
+        }
+        .vaults-title {
+            font-size: 24px;
+        }
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+        .vaults-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="container-fluid mt-4 mb-5 px-md-4">
+    <!-- En-tête -->
+    <div class="vaults-hero">
+        <div class="vaults-title">
+            <i class="bi bi-safe2"></i> Mes Coffres-forts
+        </div>
+        <div class="vaults-subtitle">
+            Économisez et sécurisez vos fonds avec nos coffres-forts numériques
+        </div>
+    </div>
+
+    <!-- Statistiques -->
+    {% if vaults %}
+    <div class="stats-summary">
+        <div class="stat-box">
+            <div class="stat-value">{{ vaults|length }}</div>
+            <div class="stat-label">Coffres créés</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ vaults_total_balance|default:0 }} FCFA</div>
+            <div class="stat-label">Total économisé</div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Formulaire de création -->
+    <div class="create-vault-form">
+        <h5 style="margin-bottom: 20px; color: #333;">
+            <i class="bi bi-plus-circle"></i> Créer un nouveau coffre
+        </h5>
+        <form id="vault-create-form" action="{% url 'vault_create' %}" method="post">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="vault-name"><i class="bi bi-tag"></i> Nom du coffre</label>
+                    <input id="vault-name" type="text" name="name" class="form-control" placeholder="Ex: Économies vacances" maxlength="100" required />
+                </div>
+                <div class="form-group">
+                    <label for="vault-locked"><i class="bi bi-calendar"></i> Verrouillé jusqu'à</label>
+                    <input id="vault-locked" type="date" name="locked_until" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label for="vault-amount"><i class="bi bi-coin"></i> Montant initial (optionnel)</label>
+                    <input id="vault-amount" type="number" name="amount" step="100" min="0" max="1000000000" class="form-control" placeholder="0 FCFA" />
+                </div>
+                <div class="form-group">
+                    <button class="btn-create-vault" type="submit">
+                        <i class="bi bi-plus"></i> Créer
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Liste des coffres -->
+    {% if vaults %}
+        <div class="section-header">
+            <i class="bi bi-list-check"></i>
+            Vos coffres ({{ vaults|length }})
+        </div>
+        <div class="vaults-grid">
+            {% for v in vaults %}
+            <div class="vault-card">
+                <div class="vault-header">
+                    <div class="vault-icon">
+                        <i class="bi bi-safe"></i>
+                    </div>
+                    <div class="vault-status {% if v.is_locked %}locked{% else %}active{% endif %}">
+                        {% if v.is_locked %}
+                            <i class="bi bi-lock"></i> Verrouillé
+                        {% else %}
+                            <i class="bi bi-unlock"></i> Actif
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="vault-name">{{ v.name }}</div>
+                
+                <div class="vault-balance">
+                    <div class="vault-balance-label">Solde actuel</div>
+                    <div class="vault-balance-value">{{ v.balance }} FCFA</div>
+                </div>
+
+                <div class="vault-info">
+                    {% if v.is_locked %}
+                        <div class="vault-info-row">
+                            <i class="bi bi-calendar-event"></i>
+                            <span>Déverrouillé le {{ v.locked_until|date:"d/m/Y" }}</span>
+                        </div>
+                        <div class="vault-info-row">
+                            <i class="bi bi-hourglass-split"></i>
+                            <span>Jours restants: {{ v.locked_until|timeuntil }}</span>
+                        </div>
+                    {% else %}
+                        <div class="vault-info-row">
+                            <i class="bi bi-check-circle"></i>
+                            <span>Accessible à tout moment</span>
+                        </div>
+                    {% endif %}
+                    <div class="vault-info-row">
+                        <i class="bi bi-calendar2"></i>
+                        <span>Créé le {{ v.created_at|date:"d/m/Y" }}</span>
+                    </div>
+                </div>
+
+                <div class="vault-actions">
+                    <button class="vault-btn" onclick="alert('Détails du coffre: {{ v.name }}')">
+                        <i class="bi bi-eye"></i> Voir détails
+                    </button>
+                    <button class="vault-btn" onclick="alert('Ajouter des fonds à {{ v.name }}')">
+                        <i class="bi bi-plus"></i> Ajouter
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div><i class="bi bi-safe"></i></div>
+            <p style="font-size: 18px; color: #666; margin-bottom: 10px;">Aucun coffre créé</p>
+            <p>Commencez à économiser en créant votre premier coffre</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    var form = document.getElementById('vault-create-form');
+    if(!form) return;
+    form.addEventListener('submit', function(e){
+        e.preventDefault();
+        var name = (document.getElementById('vault-name')||{}).value || '';
+        var amount = (document.getElementById('vault-amount')||{}).value || '';
+        name = name.trim();
+        var msg = '✓ Créer le coffre "' + name + '"?';
+        if(amount) msg += '\n💰 Montant initial: ' + amount + ' FCFA';
+        if(confirm(msg)){
+            form.submit();
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Activer la tontine - {{ tontine.name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Activer la tontine</h4>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-4">
+                    <i class="bi bi-play-circle display-1 text-warning"></i>
+                </div>
+                
+                <h5 class="mb-3">Confirmer l'activation</h5>
+                <p class="mb-4">
+                    Vous êtes sur le point d'activer la tontine 
+                    <strong>"{{ tontine.name }}"</strong>.
+                </p>
+                
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Attention :</strong> Une fois activée, la tontine ne pourra plus 
+                    retourner en mode brouillon. Les membres pourront commencer à contribuer.
+                </div>
+                
+                <table class="table table-bordered mb-4">
+                    <tr>
+                        <th>Nom de la tontine:</th>
+                        <td>{{ tontine.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Code:</th>
+                        <td>{{ tontine.code }}</td>
+                    </tr>
+                    <tr>
+                        <th>Montant de contribution:</th>
+                        <td>{{ tontine.contribution_amount }} FCFA</td>
+                    </tr>
+                    <tr>
+                        <th>Cycle:</th>
+                        <td>Tous les {{ tontine.cycle_duration }} jours</td>
+                    </tr>
+                </table>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'tontine_detail' tontine.id %}" class="btn btn-secondary">
+                            Annuler
+                        </a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-play-circle"></i> Activer la tontine
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

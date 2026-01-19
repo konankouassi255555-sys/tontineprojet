@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+
+{% block title %}Mon Profil{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<style>
+    .profile-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px 20px;
+        border-radius: 15px;
+        text-align: center;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid white;
+        margin: 0 auto 20px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    .profile-name {
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    .profile-badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 8px 16px;
+        border-radius: 20px;
+        margin-top: 10px;
+    }
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        border-left: 4px solid #667eea;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .info-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
+    }
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    .info-label {
+        color: #666;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .info-value {
+        color: #333;
+        font-size: 15px;
+        font-weight: 600;
+    }
+    .action-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-top: 30px;
+    }
+    .btn-custom {
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    .btn-custom-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+    }
+    .btn-custom-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    .stats-mini {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .stat-mini {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+    }
+    .stat-mini-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #667eea;
+    }
+    .stat-mini-label {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+    }
+    @media (max-width: 768px) {
+        .profile-header {
+            padding: 30px 15px;
+        }
+        .profile-name {
+            font-size: 22px;
+        }
+        .action-buttons {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="container mt-4 mb-5">
+    <!-- En-tête du profil -->
+    <div class="profile-header">
+        <div class="profile-avatar">
+            {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" alt="Photo de profil" class="profile-avatar">
+            {% else %}
+                <div style="width: 120px; height: 120px; background: rgba(255, 255, 255, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 50px;">
+                    <i class="bi bi-person"></i>
+                </div>
+            {% endif %}
+        </div>
+        <div class="profile-name">{{ user.get_full_name|default:user.username }}</div>
+        <div class="profile-badge">
+            <i class="bi bi-shield-check"></i>
+            {% if user.is_verified %}
+                <span>Compte vérifié</span>
+            {% else %}
+                <span>En attente de vérification</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Informations personnelles -->
+        <div class="col-lg-6">
+            <div class="info-card">
+                <h5 style="margin-bottom: 20px; color: #667eea;">
+                    <i class="bi bi-info-circle"></i> Informations personnelles
+                </h5>
+                <div class="info-row">
+                    <span class="info-label"><i class="bi bi-person-fill"></i> Nom complet</span>
+                    <span class="info-value">{{ user.get_full_name|default:"Non renseigné" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="bi bi-at"></i> Nom d'utilisateur</span>
+                    <span class="info-value">{{ user.username }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="bi bi-envelope"></i> Email</span>
+                    <span class="info-value">{{ user.email }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="bi bi-telephone"></i> Téléphone</span>
+                    <span class="info-value">{{ user.phone_number|default:"Non renseigné" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistiques et compte -->
+        <div class="col-lg-6">
+            <div class="info-card">
+                <h5 style="margin-bottom: 20px; color: #667eea;">
+                    <i class="bi bi-graph-up"></i> Données du compte
+                </h5>
+                <div class="info-row">
+                    <span class="info-label"><i class="bi bi-calendar"></i> Inscrit depuis</span>
+                    <span class="info-value">{{ user.date_joined|date:"d/m/Y" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="bi bi-check-circle"></i> Statut</span>
+                    <span class="info-value">
+                        {% if user.is_active %}
+                            <span class="badge bg-success">Actif</span>
+                        {% else %}
+                            <span class="badge bg-danger">Inactif</span>
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="bi bi-lock"></i> Vérification</span>
+                    <span class="info-value">
+                        {% if user.is_verified %}
+                            <span class="badge bg-success"><i class="bi bi-check"></i> Vérifiée</span>
+                        {% else %}
+                            <span class="badge bg-warning"><i class="bi bi-exclamation"></i> En attente</span>
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="stats-mini">
+                    <div class="stat-mini">
+                        <div class="stat-mini-value">{{ user.tontinemember_set.count }}</div>
+                        <div class="stat-mini-label">Tontines</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-value">{{ wallet.balance|default:0 }}</div>
+                        <div class="stat-mini-label">Solde FCFA</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Boutons d'action -->
+    <div class="action-buttons">
+        <a href="{% url 'profile_edit' %}" class="btn btn-custom btn-custom-primary">
+            <i class="bi bi-pencil-square"></i> Modifier le profil
+        </a>
+        <a href="{% url 'change_password' %}" class="btn btn-custom btn-custom-primary" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <i class="bi bi-lock"></i> Changer mot de passe
+        </a>
+        <a href="{% url 'wallet_overview' %}" class="btn btn-custom btn-custom-primary" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <i class="bi bi-wallet2"></i> Porte-monnaie
+        </a>
+        <a href="{% url 'dashboard' %}" class="btn btn-custom btn-custom-primary" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+            <i class="bi bi-house"></i> Retour accueil
+        </a>
+    </div>
+</div>
+{% endblock %}

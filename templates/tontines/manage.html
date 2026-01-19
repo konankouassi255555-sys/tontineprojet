@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+
+{% block title %}Gérer - {{ tontine.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <!-- Navigation de gestion -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">Gérer: {{ tontine.name }}</h4>
+                        <small class="text-muted">Code: {{ tontine.code }}</small>
+                    </div>
+                    <a href="{% url 'tontine_detail' tontine.id %}" class="btn btn-outline-secondary">
+                        ← Retour aux détails
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="list-group">
+                            <a href="#membres" class="list-group-item list-group-item-action active">
+                                <i class="bi bi-people"></i> Gestion des membres
+                            </a>
+                            <a href="#beneficiaire" class="list-group-item list-group-item-action">
+                                <i class="bi bi-person-check"></i> Allouer bénéficiaire
+                            </a>
+                            <a href="#paramètres" class="list-group-item list-group-item-action">
+                                <i class="bi bi-gear"></i> Paramètres
+                            </a>
+                            <a href="#gestion" class="list-group-item list-group-item-action">
+                                <i class="bi bi-cash-stack"></i> Gestion des contributions
+                            </a>
+                            <a href="#rapports" class="list-group-item list-group-item-action">
+                                <i class="bi bi-graph-up"></i> Rapports
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-9">
+                        <!-- Section Gestion des membres -->
+                        <div id="membres">
+                            <h5 class="mb-3">Gestion des membres</h5>
+                            
+                            <!-- Formulaire d'invitation -->
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Inviter un membre</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form method="post" action="{% url 'tontine_invite' tontine.id %}">
+                                        {% csrf_token %}
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Nom d'utilisateur ou email</label>
+                                                <input type="text" name="username_or_email" 
+                                                       class="form-control" 
+                                                       placeholder="Entrez le nom d'utilisateur ou l'email">
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <label class="form-label">Rôle</label>
+                                                <select name="role" class="form-control">
+                                                    <option value="member">Membre</option>
+                                                    <option value="treasurer">Trésorier</option>
+                                                    <option value="secretary">Secrétaire</option>
+                                                    <option value="vice_president">Vice-Président</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2 mb-3 d-flex align-items-end">
+                                                <button type="submit" class="btn btn-primary w-100">
+                                                    <i class="bi bi-send"></i> Inviter
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            
+                            <!-- Liste des membres avec actions -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Membres ({{ members.count }})</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Membre</th>
+                                                    <th>Rôle</th>
+                                                    <th>Statut</th>
+                                                    <th>Contributions</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for member in members %}
+                                                <tr>
+                                                    <td>
+                                                        <strong>{{ member.user.get_full_name }}</strong><br>
+                                                        <small class="text-muted">{{ member.user.email }}</small>
+                                                    </td>
+                                                    <td>
+                                                        <select class="form-control form-control-sm role-select" 
+                                                                data-member-id="{{ member.id }}">
+                                                            {% for role_value, role_name in member.ROLE_CHOICES %}
+                                                            <option value="{{ role_value }}" 
+                                                                    {% if member.role == role_value %}selected{% endif %}>
+                                                                {{ role_name }}
+                                                            </option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </td>
+                                                    <td>
+                                                        <select class="form-control form-control-sm status-select" 
+                                                                data-member-id="{{ member.id }}">
+                                                            <option value="pending" {% if member.status == 'pending' %}selected{% endif %}>
+                                                                En attente
+                                                            </option>
+                                                            <option value="active" {% if member.status == 'active' %}selected{% endif %}>
+                                                                Actif
+                                                            </option>
+                                                            <option value="suspended" {% if member.status == 'suspended' %}selected{% endif %}>
+                                                                Suspendu
+                                                            </option>
+                                                        </select>
+                                                    </td>
+                                                    <td>{{ member.total_contributed }} FCFA</td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-danger remove-member" 
+                                                                data-member-id="{{ member.id }}">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                </div>
+
+                                <!-- Section Allocation de bénéficiaire -->
+                                <div id="beneficiaire" class="mt-4">
+                                    <h5 class="mb-3">💰 Allouer la tontine à un membre</h5>
+                                    <div class="card mb-3">
+                                        <div class="card-body">
+                                            <p class="text-muted mb-3">
+                                                Enregistrez ici qui reçoit la tontine. Système de cycle: chaque membre ne peut recevoir qu'une fois par cycle jusqu'à ce que tous les membres aient reçu.
+                                            </p>
+                                            <a href="{% url 'allocate_beneficiary' tontine.id %}" class="btn btn-success">
+                                                <i class="bi bi-person-check"></i> Allouer la tontine
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Section Paramètres -->
+                                <div id="paramètres" class="mt-4">
+                                    <h5 class="mb-3">Paramètres</h5>
+                                    <div class="card mb-3">
+                                        <div class="card-body">
+                                            <p><strong>Lieu des réunions :</strong> {% if tontine.meeting_location %}{{ tontine.meeting_location }}{% else %}<span class="text-muted">Non défini</span>{% endif %}</p>
+                                            <p><strong>Calendrier :</strong> {% if tontine.meeting_schedule %}{{ tontine.meeting_schedule }}{% else %}<span class="text-muted">Non défini</span>{% endif %}</p>
+                                            <p><strong>Durée du cycle :</strong> {{ tontine.cycle_duration }} jours</p>
+                                            {% if tontine.status == 'draft' %}
+                                            <a href="{% url 'tontine_edit' tontine.id %}" class="btn btn-sm btn-outline-primary">Modifier les paramètres</a>
+                                            {% else %}
+                                            <small class="text-muted">Les paramètres ne peuvent être modifiés que lorsque la tontine est en brouillon.</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Section Gestion des contributions -->
+                                <div id="gestion" class="mt-4">
+                                    <h5 class="mb-3">Gestion des contributions</h5>
+                                    <div class="card mb-3">
+                                        <div class="card-body">
+                                            <p><strong>Total collecté :</strong> {{ stats.total_collected }} FCFA</p>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Membre</th>
+                                                            <th>Total contribué</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for member in members %}
+                                                        <tr>
+                                                            <td>{{ member.user.get_full_name }}</td>
+                                                            <td>{{ member.total_contributed }} FCFA</td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Section Rapports -->
+                                <div id="rapports" class="mt-4">
+                                    <h5 class="mb-3">Rapports</h5>
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <p><strong>Nombre de membres :</strong> {{ stats.total_members }}</p>
+                                            <p><strong>Membres actifs :</strong> {{ stats.active_members }}</p>
+                                            <p><strong>Cagnotte totale :</strong> {{ tontine.total_pot }} FCFA</p>
+                                            <small class="text-muted">Rapports simples — pour des rapports avancés, export CSV / PDF peut être ajouté.</small>
+                                        </div>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Changer le rôle d'un membre
+    document.querySelectorAll('.role-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const memberId = this.dataset.memberId;
+            const newRole = this.value;
+            
+            fetch(`/tontines/{{ tontine.id }}/member/${memberId}/change-role/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ role: newRole })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Rôle mis à jour avec succès!');
+                } else {
+                    alert('Erreur: ' + data.error);
+                }
+            });
+        });
+    });
+    
+    // Changer le statut d'un membre
+    document.querySelectorAll('.status-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const memberId = this.dataset.memberId;
+            const newStatus = this.value;
+            
+            if (confirm(`Voulez-vous vraiment changer le statut de ce membre?`)) {
+                fetch(`/tontines/{{ tontine.id }}/member/${memberId}/change-status/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Statut mis à jour avec succès!');
+                    } else {
+                        alert('Erreur: ' + data.error);
+                    }
+                });
+            }
+        });
+    });
+    
+    // Supprimer un membre
+    document.querySelectorAll('.remove-member').forEach(button => {
+        button.addEventListener('click', function() {
+            const memberId = this.dataset.memberId;
+            
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce membre de la tontine?')) {
+                fetch(`/tontines/{{ tontine.id }}/member/${memberId}/remove/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Erreur: ' + data.error);
+                    }
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

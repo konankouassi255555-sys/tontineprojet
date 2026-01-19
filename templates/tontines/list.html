@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes tontines{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Mes tontines</h1>
+            <a href="{% url 'tontine_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Créer une tontine
+            </a>
+        </div>
+
+        <!-- Rejoindre par code -->
+        <div class="mb-4">
+            <form method="post" action="{% url 'tontine_join' %}" class="row g-2">
+                {% csrf_token %}
+                <div class="col-auto">
+                    <input type="text" name="code" class="form-control" placeholder="Entrer le code de la tontine">
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-outline-success">Rejoindre</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Statistiques -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <h5 class="card-title">Tontines totales</h5>
+                        <p class="card-text display-6">{{ stats.total_tontines }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <h5 class="card-title">Tontines actives</h5>
+                        <p class="card-text display-6">{{ stats.active_tontines }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-info">
+                    <div class="card-body">
+                        <h5 class="card-title">Total contribué</h5>
+                        <p class="card-text display-6">{{ stats.total_contributed }} FCFA</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tontines dont je suis gestionnaire -->
+        {% if managed_tontines %}
+        <div class="card mb-4">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0"><i class="bi bi-star"></i> Tontines que je gère</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Code</th>
+                                <th>Statut</th>
+                                <th>Membres</th>
+                                <th>Cagnotte</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tontine in managed_tontines %}
+                            <tr>
+                                <td>
+                                    <strong>{{ tontine.name }}</strong><br>
+                                    <small class="text-muted">{{ tontine.description|truncatechars:50 }}</small>
+                                </td>
+                                <td><span class="badge bg-secondary">{{ tontine.code }}</span></td>
+                                <td>
+                                    {% if tontine.status == 'active' %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% elif tontine.status == 'draft' %}
+                                        <span class="badge bg-warning">Brouillon</span>
+                                    {% elif tontine.status == 'paused' %}
+                                        <span class="badge bg-danger">En pause</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ tontine.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ tontine.members.count }}</td>
+                                <td><strong>{{ tontine.total_pot }} FCFA</strong></td>
+                                <td>
+                                    <a href="{% url 'tontine_detail' tontine.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> Voir
+                                    </a>
+                                    <a href="{% url 'tontine_manage' tontine.id %}" class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-gear"></i> Gérer
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Tontines dont je suis membre -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-people"></i> Mes tontines</h5>
+            </div>
+            <div class="card-body">
+                {% if user_tontines %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Gestionnaire</th>
+                                <th>Statut</th>
+                                <th>Ma contribution</th>
+                                <th>Prochaine réunion</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tontine in user_tontines %}
+                            {% for member in request.user.tontinemember_set.all %}
+                                {{ member.tontine.name }}
+                            {% endfor %}
+                            <tr>
+                                <td>
+                                    <strong>{{ tontine.name }}</strong><br>
+                                    <small class="text-muted">{{ tontine.code }}</small>
+                                </td>
+                                <td>{{ tontine.manager.get_full_name }}</td>
+                                <td>
+                                    {% if tontine.status == 'active' %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ tontine.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ member.total_contributed }} FCFA</td>
+                                <td>
+                                    {% if tontine.meeting_schedule %}
+                                        {{ tontine.meeting_schedule }}
+                                    {% else %}
+                                        <span class="text-muted">Non défini</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'tontine_detail' tontine.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> Voir
+                                    </a>
+                                    <a href="{% url 'tontine_detail' tontine.id %}" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-cash"></i> Contribuer
+                                    </a>
+                                </td>
+                            </tr>
+                            
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-people display-1 text-muted"></i>
+                    <h4 class="mt-3">Vous n'êtes membre d'aucune tontine</h4>
+                    <p class="text-muted">Créez votre première tontine ou demandez à rejoindre une tontine existante.</p>
+                    <a href="{% url 'tontine_create' %}" class="btn btn-primary mt-2">
+                        <i class="bi bi-plus-circle"></i> Créer ma première tontine
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

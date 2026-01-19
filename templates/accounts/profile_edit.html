@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block title %}Modifier mon profil{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Modifier mon profil</h4>
+                    <a href="{% url 'profile' %}" class="btn btn-sm btn-outline-secondary">
+                        ← Retour au profil
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <strong>Veuillez corriger les erreurs ci-dessous:</strong>
+                            <ul>
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <li>{{ field|title }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        <!-- Photo de profil -->
+                        <div class="col-md-4 text-center mb-4">
+                            <div class="mb-3">
+                                {% if user.profile_picture %}
+                                    <img id="profile-preview" src="{{ user.profile_picture.url }}" 
+                                         alt="Photo de profil" 
+                                         class="img-fluid rounded-circle border" 
+                                         style="width: 200px; height: 200px; object-fit: cover;">
+                                {% else %}
+                                    <div id="profile-preview" 
+                                         class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto border"
+                                         style="width: 200px; height: 200px;">
+                                        <span class="display-4 text-white">
+                                            {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                                        </span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_profile_picture" class="form-label">Photo de profil</label>
+                                <input type="file" name="profile_picture" 
+                                       class="form-control" id="id_profile_picture"
+                                       accept="image/*">
+                                <div class="form-text">Taille max: 2MB. Formats: JPG, PNG</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Informations personnelles -->
+                        <div class="col-md-8">
+                            <h5 class="mb-3">Informations personnelles</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="id_first_name" class="form-label">Prénom *</label>
+                                    {{ form.first_name }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="id_last_name" class="form-label">Nom *</label>
+                                    {{ form.last_name }}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="id_gender" class="form-label">Genre *</label>
+                                    {{ form.gender }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="id_user_type" class="form-label">Type d'utilisateur</label>
+                                    {{ form.user_type }}
+                                    {% if not user.is_staff %}
+                                        <div class="form-text text-warning">
+                                            <i class="bi bi-info-circle"></i> 
+                                            Le type d'utilisateur ne peut être modifié que par un administrateur.
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="id_date_of_birth" class="form-label">Date de naissance</label>
+                                    {{ form.date_of_birth }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="id_phone_number" class="form-label">Téléphone *</label>
+                                    {{ form.phone_number }}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_email" class="form-label">Email *</label>
+                                {{ form.email }}
+                            </div>
+                            
+                            <div class="mt-4 pt-3 border-top">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'change_password' %}" class="btn btn-outline-warning">
+                                        <i class="bi bi-key"></i> Changer le mot de passe
+                                    </a>
+                                    <div>
+                                        <a href="{% url 'profile' %}" class="btn btn-secondary">Annuler</a>
+                                        <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Prévisualisation de la photo de profil
+    const profilePictureInput = document.getElementById('id_profile_picture');
+    const profilePreview = document.getElementById('profile-preview');
+    
+    profilePictureInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (profilePreview.tagName === 'IMG') {
+                    profilePreview.src = e.target.result;
+                } else {
+                    // Convertir le div en image
+                    const newImg = document.createElement('img');
+                    newImg.id = 'profile-preview';
+                    newImg.src = e.target.result;
+                    newImg.alt = 'Photo de profil';
+                    newImg.className = 'img-fluid rounded-circle border';
+                    newImg.style = 'width: 200px; height: 200px; object-fit: cover;';
+                    
+                    profilePreview.parentNode.replaceChild(newImg, profilePreview);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // Désactiver le champ user_type si en lecture seule
+    const userTypeField = document.getElementById('id_user_type');
+    if (userTypeField.hasAttribute('readonly')) {
+        userTypeField.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            return false;
+        });
+    }
+});
+</script>
+{% endblock %}

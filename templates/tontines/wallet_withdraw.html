@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Retrait du porte-monnaie{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card">
+            <div class="card-header">
+                <h5>Retrait du porte-monnaie</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <strong>Solde actuel:</strong> {{ wallet.balance|default:0 }} FCFA
+                </div>
+                
+                <form method="post" action="{% url 'wallet_withdraw' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Montant (FCFA)</label>
+                        <input type="number" name="amount" class="form-control" step="0.01" min="100" max="{{ wallet.balance|default:0 }}" required>
+                        <small class="text-muted">Montant maximum: {{ wallet.balance|default:0 }} FCFA</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Numéro de téléphone</label>
+                        <input type="tel" name="phone_number" class="form-control" placeholder="+226xxxxxxxx" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Méthode de retrait</label>
+                        <select name="method" class="form-select" required>
+                            <option value="">-- Sélectionnez une méthode --</option>
+                            <option value="wave">Wave</option>
+                            <option value="orange_money">Orange Money</option>
+                            <option value="moov_money">Moov Money</option>
+                            <option value="mtn_money">MTN Money</option>
+                            <option value="visa">Visa Card</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" type="submit">Retirer</button>
+                    <a href="{% url 'wallet_overview' %}" class="btn btn-secondary">Annuler</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
